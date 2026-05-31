@@ -134,17 +134,19 @@ jobs:
 
       - name: Custom Packages
         run: |
+          echo "AX6600 CI commit: $GITHUB_SHA"
+          ls -l $GITHUB_WORKSPACE/Custom/ax6600/
           cd ./wrt/package/
 
-          $GITHUB_WORKSPACE/Custom/ax6600/package.sh
-          $GITHUB_WORKSPACE/Custom/ax6600/handless.sh
+          bash $GITHUB_WORKSPACE/Custom/ax6600/package.sh
+          bash $GITHUB_WORKSPACE/Custom/ax6600/handless.sh
 
       - name: Custom Settings
         run: |
           cd ./wrt/
 
           cat $GITHUB_WORKSPACE/Custom/ax6600/ax6600.txt >> .config
-          $GITHUB_WORKSPACE/Custom/ax6600/setting.sh
+          bash $GITHUB_WORKSPACE/Custom/ax6600/setting.sh
 
           make defconfig -j$(nproc) && make clean -j$(nproc)
 
