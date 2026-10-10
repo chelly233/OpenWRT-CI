@@ -120,9 +120,13 @@ jobs:
           key: ${{env.WRT_CONFIG}}-${{env.WRT_INFO}}-${{env.WRT_HASH}}
           restore-keys: ${{env.WRT_CONFIG}}-${{env.WRT_INFO}}
           path: |
+            # Compiler cache and reusable host/toolchain outputs.
             ./wrt/.ccache
-            ./wrt/staging_dir/host*
-            ./wrt/staging_dir/tool*
+            ./wrt/dl
+            ./wrt/build_dir/host
+            ./wrt/build_dir/toolchain-*
+            ./wrt/staging_dir/host
+            ./wrt/staging_dir/toolchain-*
 
       - name: Update Caches
         if: env.WRT_TEST != 'true'
