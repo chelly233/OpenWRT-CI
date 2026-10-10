@@ -112,22 +112,32 @@ jobs:
         run: |
           find ./ -maxdepth 3 -type f -iregex ".*\(txt\|sh\)$" -exec dos2unix {} \; -exec chmod +x {} \;
 
-      - name: Check Caches
-        id: check-cache
+      - name: Restore download cache
         if: env.WRT_TEST != 'true'
         uses: actions/cache@v4
         with:
-          # Keep caches isolated by OS, source and branch. A new commit gets a
-          # new cache while restore-keys can still reuse the previous commit's
-          # downloads and toolchain outputs.
-          key: ${{runner.os}}-${{env.WRT_CONFIG}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-${{env.WRT_HASH}}
+          key: ${{runner.os}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-downloads-${{env.WRT_HASH}}
           restore-keys: |
-            ${{runner.os}}-${{env.WRT_CONFIG}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-
-            ${{runner.os}}-${{env.WRT_CONFIG}}-${{env.WRT_SOURCE}}-
+            ${{runner.os}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-downloads-
+          path: ./wrt/dl
+
+      - name: Restore compiler cache
+        if: env.WRT_TEST != 'true'
+        uses: actions/cache@v4
+        with:
+          key: ${{runner.os}}-${{env.WRT_CONFIG}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-ccache-${{env.WRT_HASH}}
+          restore-keys: |
+            ${{runner.os}}-${{env.WRT_CONFIG}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-ccache-
+          path: ./wrt/.ccache
+
+      - name: Restore host and toolchain cache
+        if: env.WRT_TEST != 'true'
+        uses: actions/cache@v4
+        with:
+          key: ${{runner.os}}-${{env.WRT_CONFIG}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-toolchain-${{env.WRT_HASH}}
+          restore-keys: |
+            ${{runner.os}}-${{env.WRT_CONFIG}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-toolchain-
           path: |
-            # Compiler cache and reusable host/toolchain outputs.
-            ./wrt/.ccache
-            ./wrt/dl
             ./wrt/build_dir/host
             ./wrt/build_dir/toolchain-*
             ./wrt/staging_dir/host

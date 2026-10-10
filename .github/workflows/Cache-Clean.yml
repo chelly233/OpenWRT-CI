@@ -4,7 +4,7 @@
 name: Cache-Clean
 
 on:
-  #自动清理：每周一早上4点
+  #自动清理：每周一早上4点，仅清理长期未访问的缓存
   schedule:
     - cron: 0 20 * * 0
   #手动清理
@@ -23,4 +23,18 @@ jobs:
         uses: actions/checkout@main
 
       - name: Cache Clean
-        run: gh cache delete --all
+        env:
+          CACHE_MAX_AGE_DAYS: 30
+        run: |
+          set -Eeuo pipefail
+
+          cutoff=$(date -d "-${CACHE_MAX_AGE_DAYS} days" +%s)
+          gh cache list --limit 10000 --json id,lastAccessedAt,key --jq '.[] | [.id, .lastAccessedAt, .key] | @tsv' |
+            while IFS=$'\t' read -r cache_id last_accessed key; do
+              [ -n "$cache_id" ] || continue
+              last_accessed_epoch=$(date -d "$last_accessed" +%s)
+              if [ "$last_accessed_epoch" -lt "$cutoff" ]; then
+                echo "Deleting stale cache $cache_id ($key)"
+                gh cache delete "$cache_id" --confirm
+              fi
+            done
