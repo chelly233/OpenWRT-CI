@@ -111,7 +111,7 @@ jobs:
         if: env.WRT_TEST != 'true'
         uses: actions/cache@v4
         with:
-          key: ${{runner.os}}-${{env.WRT_CONFIG}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-toolchain-${{env.WRT_HASH}}
+          key: ${{runner.os}}-${{env.WRT_CONFIG}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-toolchain-${{env.WRT_HASH}}-${{github.sha}}
           restore-keys: |
             ${{runner.os}}-${{env.WRT_CONFIG}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-toolchain-
           path: |
@@ -119,6 +119,18 @@ jobs:
             ./wrt/build_dir/toolchain-*
             ./wrt/staging_dir/host
             ./wrt/staging_dir/toolchain-*
+
+      - name: Restore target build cache
+        if: env.WRT_TEST != 'true'
+        uses: actions/cache@v4
+        with:
+          key: ${{runner.os}}-${{env.WRT_CONFIG}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-target-${{env.WRT_HASH}}-${{github.sha}}
+          restore-keys: |
+            ${{runner.os}}-${{env.WRT_CONFIG}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-target-${{env.WRT_HASH}}-
+            ${{runner.os}}-${{env.WRT_CONFIG}}-${{env.WRT_SOURCE}}-${{env.WRT_BRANCH}}-target-
+          path: |
+            ./wrt/build_dir/target-*
+            ./wrt/staging_dir/target-*
 
       - name: Update Feeds
         run: |
@@ -143,7 +155,7 @@ jobs:
           cat $GITHUB_WORKSPACE/Custom/ax6600/ax6600.txt >> .config
           bash $GITHUB_WORKSPACE/Custom/ax6600/setting.sh
 
-          make defconfig -j$(nproc) && make clean -j$(nproc)
+          make defconfig -j$(nproc)
 
       - name: Download Packages
         if: env.WRT_TEST != 'true'
@@ -190,7 +202,6 @@ jobs:
 
             find ./bin/targets/ -type f -exec mv -f {} ./upload/ \;
 
-            make clean -j$(nproc)
           fi
 
       - name: Release Firmware
