@@ -55,3 +55,25 @@ if [ -f "$GEO_DATA_MAKEFILE" ]; then
 		"$GEO_DATA_MAKEFILE"
 fi
 UPDATE_PACKAGE "qbittorrent" "sbwml/luci-app-qbittorrent" "master" "" "qt6base qt6tools rblibtorrent"
+
+# Pull honk and its LuCI app from the upstream package feed at build time.
+# The package Makefile downloads the honk-core release from Glassyiris/honk.
+INSTALL_HONK_PACKAGES() {
+	local REPO_DIR=".honk-small"
+	local REPO_URL="https://github.com/kenzok8/small.git"
+
+	rm -rf "$REPO_DIR" ./honk ./luci-app-honk
+	git clone --depth=1 --single-branch --branch master "$REPO_URL" "$REPO_DIR"
+	for PKG_NAME in honk luci-app-honk; do
+		if [ ! -d "$REPO_DIR/$PKG_NAME" ]; then
+			echo "Missing $PKG_NAME in $REPO_URL" >&2
+			rm -rf "$REPO_DIR"
+			return 1
+		fi
+		cp -a "$REPO_DIR/$PKG_NAME" "./$PKG_NAME"
+	done
+	rm -rf "$REPO_DIR"
+	echo "Installed honk and luci-app-honk from $REPO_URL"
+}
+
+INSTALL_HONK_PACKAGES
